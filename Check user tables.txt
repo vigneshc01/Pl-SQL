@@ -1,0 +1,87 @@
+-- 1.take the table name as the input (assume EMP as the input)
+
+--Check if it exists in the current user tables -- if so display the current username, table_name
+--EMP TABLE is associated with CURRENT USER (user_name)
+
+CREATE OR REPLACE PROCEDURE SP_CHECK_TABLE( U_TABLE_NAME VARCHAR2) AS
+V_USER VARCHAR2(40);
+v_count int;
+
+BEGIN 
+   SELECT count(TABLE_NAME) into v_count FROM USER_TABLES WHERE TABLE_NAME = U_TABLE_NAME;
+   SELECT USER INTO V_USER FROM DUAL;
+   IF  v_count>0 THEN
+       
+       DBMS_OUTPUT.PUT_LINE(' EMP TABLE is associated with CURRENT USER ' ||  V_USER);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE(' EMP TABLE is  NOT associated with CURRENT USER ' ||  V_USER);
+    END IF;
+END;
+/
+exec SP_CHECK_TABLE('EMP');
+/
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 2. Check if it exists in any other user schemas -- if so display the ownername, table_name
+--owners who owns the same table
+--SIVA
+--SAGAR
+
+CREATE OR REPLACE PROCEDURE  sp_other_user_table (u_table_name varchar2 )
+as
+   type u_names is table of all_tables%rowtype;
+   v_name u_names;
+   v_owner_name all_tables.owner%type;
+   
+begin 
+     -- get user name 
+       select user into v_owner_name from dual;
+       
+      SELECT *
+      BULK COLLECT INTO v_name
+      FROM all_tables
+      where table_name = u_table_name and owner != v_owner_name ;
+      
+      if v_name.count != 0 then 
+         for i in 1..v_name.count loop
+            dbms_output.put_line ( v_name(i).owner);
+         end loop;
+       else 
+          dbms_output.put_line (  'No Owner with the table');
+        end if;
+end;  
+        /
+exec sp_other_user_table('EMP');
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+--3.If the table exists in more than one schema, check if the structure is same. If the structure is same display the following result
+TABLE_NAME  CURR_USER   OWNER2  STATUS
+EMP         RAJESH      SIVA    structure is different
+EMP         RAJESH      SAGAR   structure is same
+
+
+
+
+
+create or replace procedure check_table_of_other_user(u_table_name varchar2) as
+   type u_names is table of all_tables%rowtype;
+   v_name u_names;
+   v_owner_name all_tables.owner%type;
+   V_count int :=1;
+begin  
+       select user into v_owner_name from dual;
+      SELECT *
+      BULK COLLECT INTO v_name
+      FROM all_tables 
+      where table_name = u_table_name and owner != v_owner_name ;
+      
+      if v_name.count != 0 then 
+         for i in 1..v_name.count loop
+            dbms_output.put_line ( v_count || ' '|| v_name(i).owner);
+            v_count :=v_count +1;
+         end loop;
+       else 
+          dbms_output.put_line ('No Owner with the table');
+        end if;
+end;

@@ -1,0 +1,22 @@
+create or replace procedure last_friday(v_start_date date,v_end_date date) as
+ end_date date ;
+ first_day_of_week date ;
+ begin
+    while v_start_date <= v_end_date loop
+    
+     first_day_of_week :=trunc(last_day(v_start_date),'ww');
+     if to_char(next_day( first_day_of_week,'friday'),'mm')!= to_char(friday,'mm') then
+       first_day_of_week:= first_day_of_week -7;
+       first_day_of_week:= next_day( first_day_of_week,'friday');
+       dbms_output.put_line('if block ' ||first_day_of_week);
+      else
+        first_day_of_week := next_day( first_day_of_week,'friday');
+        dbms_output.put_line('else block friday '|| first_day_of_week);
+     
+     end if;
+     v_start_date := add_months(v_start_date,1);
+     
+     end loop;
+end;
+
+exec last_friday('01-01-2024','31-01-2024');
